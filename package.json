@@ -1,13 +1,18 @@
 {
   "name": "chat-group-summarizer",
-  "version": "1.5.9",
-  "description": "A tool to summarize RingCentral group chats using Gemini.",
+  "version": "1.6.0",
+  "description": "A tool to summarize RingCentral group chats using Gemini with enhanced debugging and monitoring.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "report:daily": "node index.js daily",
-    "report:weekly": "node index.js weekly"
+    "start:debug": "LOG_LEVEL=debug node index.js",
+    "health-check": "curl -s http://localhost:3000/health | jq '.'",
+    "diagnostics": "curl -s http://localhost:3000/diagnostics",
+    "config-check": "node -e \"import('./config-validator.js').then(m => m.default.validateAndThrow().then(() => console.log('✅ Configuration valid')).catch(e => console.error('❌ Configuration invalid:', e.message)))\"",
+    "test-apis": "node -e \"console.log('Testing API connectivity...'); import('./test-connectivity.js').then(m => m.default())\"",
+    "clean-logs": "find ./logs -name '*.log' -mtime +30 -delete",
+    "backup-reports": "tar -czf reports-backup-$(date +%Y%m%d).tar.gz ./reports/"
   },
   "dependencies": {
     "@google/generative-ai": "^0.1.3",
@@ -16,5 +21,14 @@
     "dotenv": "^16.0.3",
     "express": "^5.1.0",
     "showdown": "^2.1.0"
-  }
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["ringcentral", "chat", "summarizer", "gemini", "ai", "monitoring"],
+  "author": "Your Organization",
+  "license": "MIT"
 }
