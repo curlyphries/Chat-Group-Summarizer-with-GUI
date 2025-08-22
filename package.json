@@ -6,13 +6,13 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "start:debug": "LOG_LEVEL=debug node index.js",
-    "health-check": "curl -s http://localhost:3000/health | jq '.'",
-    "diagnostics": "curl -s http://localhost:3000/diagnostics",
+    "start:debug": "cross-env LOG_LEVEL=debug node index.js",
+    "health-check": "node -e \"fetch('http://localhost:3000/health').then(r=>r.json()).then(console.log).catch(console.error)\"",
+    "diagnostics": "node -e \"fetch('http://localhost:3000/diagnostics').then(r=>r.json()).then(console.log).catch(console.error)\"",
     "config-check": "node -e \"import('./config-validator.js').then(m => m.default.validateAndThrow().then(() => console.log('✅ Configuration valid')).catch(e => console.error('❌ Configuration invalid:', e.message)))\"",
     "test-apis": "node -e \"console.log('Testing API connectivity...'); import('./test-connectivity.js').then(m => m.default())\"",
-    "clean-logs": "find ./logs -name '*.log' -mtime +30 -delete",
-    "backup-reports": "tar -czf reports-backup-$(date +%Y%m%d).tar.gz ./reports/"
+    "clean-logs": "node -e \"const fs=require('fs'),path=require('path');if(fs.existsSync('./logs')){fs.readdirSync('./logs').filter(f=>f.endsWith('.log')&&Date.now()-fs.statSync(path.join('./logs',f)).mtime>30*24*60*60*1000).forEach(f=>fs.unlinkSync(path.join('./logs',f)))}\"",
+    "backup-reports": "node -e \"const fs=require('fs'),path=require('path'),{execSync}=require('child_process');const date=new Date().toISOString().slice(0,10).replace(/-/g,'');if(process.platform==='win32'){execSync(`powershell Compress-Archive -Path ./reports -DestinationPath reports-backup-${date}.zip`)}else{execSync(`tar -czf reports-backup-${date}.tar.gz ./reports/`)}\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.1.3",
@@ -23,6 +23,7 @@
     "showdown": "^2.1.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^3.0.1"
   },
   "engines": {
